@@ -1,0 +1,19 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import PlacePage from '../components/PlacePage.astro';
+
+export async function getStaticPaths() {
+  const places = await getCollection('places');
+  return places.map((place) => ({
+    params: { place: place.id },
+    props: { place },
+  }));
+}
+
+const { place } = Astro.props;
+---
+
+<Base title={place.data.seoTitle} description={place.data.seoDescription}>
+  <PlacePage place={place} />
+</Base>

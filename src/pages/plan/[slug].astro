@@ -1,0 +1,31 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { partnerHref } from '../../lib/partners';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('guides');
+  return guides.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const trainsHref = entry.id === 'trains' ? partnerHref('trains') : null;
+const flightsHref = entry.id === 'flights' ? partnerHref('flights') : null;
+---
+
+<Base title={entry.data.seoTitle} description={entry.data.seoDescription}>
+  <article class="wrap page prose">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href="/plan">Plan a trip</a>
+      <span aria-hidden="true">/</span>
+      <span>{entry.data.title}</span>
+    </nav>
+    <h1>{entry.data.title}</h1>
+    {entry.data.intro.map((paragraph) => <p>{paragraph}</p>)}
+    {trainsHref && <p><a href={trainsHref}>Search trains</a></p>}
+    {flightsHref && <p><a href={flightsHref}>Search flights</a></p>}
+  </article>
+</Base>

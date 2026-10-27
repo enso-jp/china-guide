@@ -1,0 +1,105 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import { partnerHref } from '../../lib/partners';
+
+export async function getStaticPaths() {
+  const trips = await getCollection('itineraries');
+  return trips.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const trainsHref = entry.data.byTrain ? partnerHref('trains') : null;
+
+function stopHref(kind: string, slug: string) {
+  if (kind === 'place') return `/${slug}`;
+  if (kind === 'dish') return `/dishes/${slug}`;
+  const sep = slug.indexOf('--');
+  if (sep < 0) return `/${slug}`;
+  return `/${slug.slice(0, sep)}/${slug.slice(sep + 2)}`;
+}
+---
+
+<Base title={entry.data.title} description={entry.data.summary}>
+  <article class="wrap page">
+    <h1>{entry.data.title}</h1>
+    <p class="prose">{entry.data.summary}</p>
+    <dl class="facts">
+      <div>
+        <dt>Duration</dt>
+        <dd>{entry.data.duration}</dd>
+      </div>
+      {
+        entry.data.budget && (
+          <div>
+            <dt>Budget</dt>
+            <dd>{entry.data.budget}</dd>
+          </div>
+        )
+      }
+      {
+        entry.data.pace && (
+          <div>
+            <dt>Pace</dt>
+            <dd>{entry.data.pace}</dd>
+          </div>
+        )
+      }
+    </dl>
+    {
+      entry.data.gettingThere && (
+        <section class="prose">
+          <h2>Getting there</h2>
+          <p>
+            {entry.data.gettingThere}
+            {trainsHref && (
+              <>
+                {' '}
+                <a href={trainsHref}>Search trains</a>
+              </>
+            )}
+          </p>
+        </section>
+      )
+    }
+    <ol class="trip-days">
+      {
+        entry.data.days.map((day) => (
+          <li class="day-card">
+            <Photo id={day.photo} alt={day.title} frame="card" />
+            <div>
+              <h2>{day.title}</h2>
+              <p>{day.summary}</p>
+              <ol class="stop-list">
+                {day.stops.map((stop) => (
+                  <li>
+                    <a href={stopHref(stop.kind, stop.slug)}>{stop.slug}</a>
+                    {stop.minutes != null && <span class="note"> {stop.minutes} min</span>}
+                  </li>
+                ))}
+              </ol>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+    {
+      entry.data.additions && entry.data.additions.length > 0 && (
+        <section>
+          <h2>Recommended additions</h2>
+          <ul class="index-list">
+            {entry.data.additions.map((item) => (
+              <li>
+                <a href={stopHref(item.kind, item.slug)}>{item.title}</a>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )
+    }
+  </article>
+</Base>

@@ -1,0 +1,30 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+
+export async function getStaticPaths() {
+  const corridors = await getCollection('corridors');
+  return corridors.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+---
+
+<Base title={entry.data.name} description={entry.data.sellingPoint}>
+  <article class="wrap page">
+    <h1>{entry.data.name}</h1>
+    <p>{entry.data.sellingPoint}</p>
+    <ul class="index-list">
+      {
+        entry.data.places.map((slug) => (
+          <li>
+            <a href={`/${slug}`}>{slug}</a>
+          </li>
+        ))
+      }
+    </ul>
+  </article>
+</Base>

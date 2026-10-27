@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+
+export async function getStaticPaths() {
+  const dishes = await getCollection('dishes');
+  return dishes.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const blocks = [
+  entry.data.history,
+  entry.data.texture,
+  entry.data.taste,
+  entry.data.howToEat,
+].filter((block): block is string => Boolean(block));
+---
+
+<Base title={entry.data.name} description={entry.data.summary}>
+  <article class="wrap page prose">
+    <h1>{entry.data.name}</h1>
+    <p>{entry.data.summary}</p>
+    {entry.data.photo && <Photo id={entry.data.photo} alt={entry.data.name} frame="card" eager />}
+    {blocks.map((block) => <p>{block}</p>)}
+    {
+      (entry.data.hours || entry.data.price) && (
+        <dl class="facts">
+          {entry.data.hours && (
+            <div>
+              <dt>Hours</dt>
+              <dd>{entry.data.hours}</dd>
+            </div>
+          )}
+          {entry.data.price && (
+            <div>
+              <dt>Price</dt>
+              <dd>{entry.data.price}</dd>
+            </div>
+          )}
+        </dl>
+      )
+    }
+  </article>
+</Base>

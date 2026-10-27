@@ -1,0 +1,48 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+
+export async function getStaticPaths() {
+  const attractions = await getCollection('attractions');
+  return attractions.flatMap((entry) => {
+    const sep = entry.id.indexOf('--');
+    if (sep < 0) return [];
+    const place = entry.id.slice(0, sep);
+    const sight = entry.id.slice(sep + 2);
+    if (place !== entry.data.placeSlug) return [];
+    return [{ params: { place, sight }, props: { entry } }];
+  });
+}
+
+const { entry } = Astro.props;
+const paragraphs = entry.data.body.split(/\n\n+/);
+---
+
+<Base title={entry.data.name} description={entry.data.kicker}>
+  <article class="wrap page prose">
+    <nav class="crumbs" aria-label="Breadcrumb">
+      <a href={`/${entry.data.placeSlug}`}>{entry.data.placeSlug}</a>
+      <span aria-hidden="true">/</span>
+      <span>{entry.data.name}</span>
+    </nav>
+    <h1>{entry.data.name}</h1>
+    <p class="note">{entry.data.kicker}</p>
+    <p class="note">{entry.data.notice}</p>
+    <Photo id={entry.data.photo} alt={entry.data.name} frame="card" eager />
+    {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+    <Photo id={entry.data.photo2} alt="" frame="card" />
+    <h2>Getting there</h2>
+    <p>{entry.data.gettingThere}</p>
+    <dl class="facts">
+      <div>
+        <dt>Hours</dt>
+        <dd>{entry.data.hours}</dd>
+      </div>
+      <div>
+        <dt>Fees</dt>
+        <dd>{entry.data.fees}</dd>
+      </div>
+    </dl>
+  </article>
+</Base>

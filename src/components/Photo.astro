@@ -1,0 +1,29 @@
+---
+import { creditFor } from '../lib/credits';
+
+interface Props {
+  id: string;
+  alt: string;
+  frame?: 'hero' | 'card' | 'portrait' | 'row';
+  eager?: boolean;
+}
+
+const { id, alt, frame = 'card', eager = false } = Astro.props;
+const credit = creditFor(id);
+---
+
+<figure class:list={['frame', `frame-${frame}`]}>
+  <img
+    src={`/photos/${id}.jpg`}
+    alt={alt}
+    loading={eager ? 'eager' : 'lazy'}
+    decoding="async"
+  />
+  {
+    credit && (
+      <figcaption class="photo-credit">
+        <a href={credit.source}>{credit.author}</a>, {credit.license}
+      </figcaption>
+    )
+  }
+</figure>

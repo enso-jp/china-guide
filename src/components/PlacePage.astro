@@ -1,0 +1,283 @@
+---
+import { getCollection } from 'astro:content';
+import type { CollectionEntry } from 'astro:content';
+import Photo from './Photo.astro';
+import { partnerHref } from '../lib/partners';
+
+interface Props {
+  place: CollectionEntry<'places'>;
+}
+
+const { place } = Astro.props;
+const placeSlug = place.id;
+
+const [attractions, festivals, itineraries, foodGuides] = await Promise.all([
+  getCollection('attractions'),
+  getCollection('festivals'),
+  getCollection('itineraries'),
+  getCollection('food'),
+]);
+
+const sights = attractions
+  .filter((entry) => entry.data.placeSlug === placeSlug)
+  .sort((a, b) => a.id.localeCompare(b.id));
+const events = festivals
+  .filter((entry) => entry.data.placeSlug === placeSlug)
+  .sort((a, b) => a.id.localeCompare(b.id));
+const trips = itineraries.filter((entry) =>
+  entry.data.days.some((day) =>
+    day.stops.some((stop) => stop.kind === 'place' && stop.slug === placeSlug),
+  ),
+);
+const food = foodGuides.find((entry) => entry.id === place.data.foodSlug);
+const lead = sights[0];
+const staysHref = partnerHref('hotels');
+const toursHref = partnerHref('tours');
+const trainsHref = partnerHref('trains');
+
+function sightPath(id: string) {
+  const prefix = `${placeSlug}--`;
+  const sight = id.startsWith(prefix) ? id.slice(prefix.length) : id;
+  return `/${placeSlug}/${sight}`;
+}
+---
+
+<article class="wrap place page">
+  <nav class="crumbs" aria-label="Breadcrumb">
+    <a href="/">Home</a>
+    <span aria-hidden="true">/</span>
+    <a href="/destinations">Destinations</a>
+    <span aria-hidden="true">/</span>
+    <span>{place.data.name}</span>
+  </nav>
+  <h1>{place.data.name}</h1>
+  <p class="lede">{place.data.lede}</p>
+  <p class="dots" aria-label={`Editorial rating ${place.data.dots} of 5`}>
+    {
+      Array.from({ length: 5 }, (_, index) => (
+        <i class={index < place.data.dots ? 'on' : ''}>{index < place.data.dots ? '●' : '○'}</i>
+      ))
+    }
+  </p>
+  <div class="pills">
+    <span class="pill">{place.data.season.label}</span>
+    {
+      place.data.interestChips.slice(0, 4).map((chip) => (
+        <a class="pill" href={chip.href}>
+          {chip.label}
+        </a>
+      ))
+    }
+  </div>
+  <p class="note">{place.data.season.note}</p>
+  <Photo id={place.data.hero} alt={place.data.name} frame="hero" eager />
+  <hr class="rule" />
+  <dl class="facts">
+    <div>
+      <dt>Time needed</dt>
+      <dd>{place.data.facts.timeNeeded}</dd>
+    </div>
+    <div>
+      <dt>Getting there</dt>
+      <dd>{place.data.facts.gettingThere}</dd>
+    </div>
+    <div>
+      <dt>Best months</dt>
+      <dd>{place.data.facts.bestMonths}</dd>
+    </div>
+  </dl>
+  <div class="prose">
+    {
+      place.data.intro.map((paragraph, index) => (
+        <>
+          <p>{paragraph}</p>
+          {index === 0 && lead && <Photo id={lead.data.photo} alt={lead.data.name} frame="card" />}
+        </>
+      ))
+    }
+  </div>
+  {
+    place.data.questions.length > 0 && (
+      <section class="prose">
+        <h2>Common questions</h2>
+        <dl class="questions">
+          {place.data.questions.map((item) => (
+            <>
+              <dt>{item.q}</dt>
+              <dd>{item.a}</dd>
+            </>
+          ))}
+        </dl>
+      </section>
+    )
+  }
+  {
+    sights.length > 0 && (
+      <section>
+        <h2>Attractions</h2>
+        <ul class="card-list">
+          {sights.map((sight, index) => (
+            <li hidden={index >= 6}>
+              <a class="card" href={sightPath(sight.id)}>
+                <Photo id={sight.data.photo} alt={sight.data.name} frame="card" />
+                <span class="kicker">{sight.data.kicker}</span>
+                <strong>{sight.data.name}</strong>
+                <span class="district">{sight.data.district}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+        {
+          sights.length > 6 && (
+            <button type="button" class="show-all" data-show-all>
+              Show all
+            </button>
+          )
+        }
+      </section>
+    )
+  }
+  {
+    events.length > 0 && (
+      <section>
+        <h2>Events</h2>
+        <ul class="card-list">
+          {events.map((event) => (
+            <li>
+              <article class="card">
+                {event.data.photo && <Photo id={event.data.photo} alt={event.data.name} frame="card" />}
+                <strong>{event.data.name}</strong>
+                <span class="district">{event.data.where}</span>
+                {event.data.when && <span class="note">{event.data.when}</span>}
+                <p>{event.data.summary}</p>
+              </article>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+  {
+    place.data.sideTrips.length > 0 && (
+      <section class="prose">
+        <h2>Side trips</h2>
+        {place.data.sideTrips.map((trip) => (
+          <div class="text-row">
+            {trip.photo && <Photo id={trip.photo} alt={trip.name} frame="row" />}
+            <div>
+              <h3>{trip.href ? <a href={trip.href}>{trip.name}</a> : trip.name}</h3>
+              <p>{trip.summary}</p>
+            </div>
+          </div>
+        ))}
+      </section>
+    )
+  }
+  {
+    place.data.interests.length > 0 && (
+      <section>
+        <h2>Interests</h2>
+        <div class="interest-slider">
+          {place.data.interests.map((item) => (
+            <a class="portrait" href={item.href}>
+              <Photo id={item.photo} alt={item.title} frame="portrait" />
+              <strong>{item.title}</strong>
+              <span class="note">{item.summary}</span>
+            </a>
+          ))}
+        </div>
+      </section>
+    )
+  }
+  <section class="prose">
+    <h2>Getting there</h2>
+    <p>
+      {place.data.gettingThere}
+      {trainsHref && (
+        <>
+          {' '}
+          <a href={trainsHref}>Search trains</a>
+        </>
+      )}
+    </p>
+    {
+      place.data.nearby.length > 0 && (
+        <ul class="index-list">
+          {place.data.nearby.map((slug) => (
+            <li>
+              <a href={`/${slug}`}>{slug}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </section>
+  {
+    trips.length > 0 && (
+      <section>
+        <h2>Itineraries</h2>
+        <ul class="index-list">
+          {trips.map((trip) => (
+            <li>
+              <a href={`/itineraries/${trip.id}`}>{trip.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      </section>
+    )
+  }
+  {
+    place.data.stayAreas.length > 0 && (
+      <section>
+        <h2>Where to <span class="stay">stay</span></h2>
+        <ul class="stay-list">
+          {place.data.stayAreas.map((area) => (
+            <li>
+              <Photo id={area.photo} alt={area.name} frame="row" />
+              <div>
+                <h3>{area.name}</h3>
+                <p>{area.summary}</p>
+                <p class="note">{area.band}</p>
+              </div>
+            </li>
+          ))}
+        </ul>
+        {staysHref && (
+          <a class="btn-lacquer" href={staysHref}>
+            Search stays
+          </a>
+        )}
+      </section>
+    )
+  }
+  {
+    place.data.ticketed && (
+      <section>
+        <h2>Tours and attractions</h2>
+        <a class="card" href={place.data.ticketed.href ?? '#attractions'}>
+          <Photo id={place.data.ticketed.photo} alt={place.data.ticketed.name} frame="card" />
+          <strong>{place.data.ticketed.name}</strong>
+          <p>{place.data.ticketed.summary}</p>
+        </a>
+        {toursHref && (
+          <a class="btn-lacquer" href={toursHref}>
+            Search tours & attractions
+          </a>
+        )}
+      </section>
+    )
+  }
+  {
+    food && (
+      <section>
+        <h2>Restaurants</h2>
+        <a class="text-row" href={`/food/${food.id}`}>
+          <Photo id={food.data.hero} alt={food.data.name} frame="row" />
+          <div>
+            <h3>{food.data.name}</h3>
+          </div>
+        </a>
+      </section>
+    )
+  }
+</article>

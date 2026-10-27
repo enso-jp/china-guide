@@ -1,0 +1,25 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+
+const trips = [...(await getCollection('itineraries'))].sort((a, b) => a.id.localeCompare(b.id));
+---
+
+<Base title="Itineraries" description="Itineraries in China.">
+  <div class="wrap page">
+    <h1>Itineraries</h1>
+    {
+      trips.length === 0 ? (
+        <p class="note">No itineraries published.</p>
+      ) : (
+        <ul class="index-list">
+          {trips.map((trip) => (
+            <li>
+              <a href={`/itineraries/${trip.id}`}>{trip.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</Base>
