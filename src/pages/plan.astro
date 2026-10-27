@@ -1,0 +1,26 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { byGuideOrder } from '../lib/taxonomy';
+
+const guides = byGuideOrder(await getCollection('guides'));
+---
+
+<Base title="Plan a trip" description="Plan a trip in China.">
+  <div class="wrap page">
+    <h1>Plan a trip</h1>
+    {
+      guides.length === 0 ? (
+        <p class="note">No guides published.</p>
+      ) : (
+        <ul class="index-list">
+          {guides.map((guide) => (
+            <li>
+              <a href={`/plan/${guide.id}`}>{guide.data.title}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</Base>

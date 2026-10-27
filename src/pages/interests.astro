@@ -1,0 +1,35 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import { byLaunch } from '../lib/taxonomy';
+
+const places = byLaunch(await getCollection('places'));
+const seen = new Set<string>();
+const items: { href: string; label: string }[] = [];
+for (const place of places) {
+  for (const item of place.data.interests) {
+    if (seen.has(item.href)) continue;
+    seen.add(item.href);
+    items.push({ href: item.href, label: item.title });
+  }
+}
+---
+
+<Base title="Interests" description="Interests in China.">
+  <div class="wrap page">
+    <h1>Interests</h1>
+    {
+      items.length === 0 ? (
+        <p class="note">No interests published.</p>
+      ) : (
+        <ul class="index-list">
+          {items.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+  </div>
+</Base>

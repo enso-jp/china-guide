@@ -1,0 +1,18 @@
+---
+const links = [
+  { href: '/destinations', label: 'Destinations' },
+  { href: '/interests', label: 'Interests' },
+  { href: '/itineraries', label: 'Itineraries' },
+  { href: '/plan', label: 'Plan a trip' },
+];
+---
+
+<footer class="footer">
+  <div class="wrap footer-row">
+    <a class="wordmark" href="/" aria-label="China Guide home">China Guide</a>
+    <nav aria-label="Footer">
+      {links.map((link) => <a href={link.href}>{link.label}</a>)}
+    </nav>
+    <p class="note">© 2026 China Guide</p>
+  </div>
+</footer>

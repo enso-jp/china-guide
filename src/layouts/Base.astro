@@ -1,0 +1,46 @@
+---
+import '@fontsource/source-sans-3/latin-400.css';
+import '@fontsource/source-sans-3/latin-600.css';
+import '@fontsource/source-sans-3/latin-700.css';
+import '../styles/global.css';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  robots?: string;
+}
+
+const { title, description = 'English guide to China.', robots = 'index,follow' } = Astro.props;
+const fullTitle = title ? `${title} | China Guide` : 'China Guide';
+const canonical = new URL(Astro.url.pathname, Astro.site);
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{fullTitle}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical.href} />
+    <meta name="robots" content={robots} />
+    <meta property="og:title" content={fullTitle} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical.href} />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta name="theme-color" content="#f3efe7" />
+  </head>
+  <body>
+    <Header />
+    <main id="content">
+      <slot />
+    </main>
+    <Footer />
+    <script>
+      import '../scripts/ui.ts';
+    </script>
+  </body>
+</html>

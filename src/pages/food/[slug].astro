@@ -1,0 +1,67 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Photo from '../../components/Photo.astro';
+import { partnerHref } from '../../lib/partners';
+
+export async function getStaticPaths() {
+  const guides = await getCollection('food');
+  return guides.map((entry) => ({
+    params: { slug: entry.id },
+    props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const dishes = (await getCollection('dishes'))
+  .filter((dish) => dish.data.placeSlug === entry.data.placeSlug)
+  .sort((a, b) => a.data.name.localeCompare(b.data.name));
+const withPhoto = dishes.filter((dish) => dish.data.photo);
+const namedOnly = dishes.filter((dish) => !dish.data.photo);
+const staysHref = partnerHref('hotels');
+---
+
+<Base title={entry.data.seoTitle} description={entry.data.seoDescription}>
+  <article class="wrap page">
+    <h1>{entry.data.name}</h1>
+    <Photo id={entry.data.hero} alt={entry.data.name} frame="hero" eager />
+    <div class="prose">
+      {entry.data.intro.map((paragraph) => <p>{paragraph}</p>)}
+    </div>
+    {
+      withPhoto.length > 0 && (
+        <ul class="card-list">
+          {withPhoto.map((dish) => (
+            <li>
+              <a class="card" href={`/dishes/${dish.id}`}>
+                <Photo id={dish.data.photo ?? ''} alt={dish.data.name} frame="card" />
+                <strong>{dish.data.name}</strong>
+                <p>{dish.data.summary}</p>
+              </a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      namedOnly.length > 0 && (
+        <ul class="index-list">
+          {namedOnly.map((dish) => (
+            <li>
+              <a href={`/dishes/${dish.id}`}>{dish.data.name}</a>
+            </li>
+          ))}
+        </ul>
+      )
+    }
+    {
+      staysHref && (
+        <p>
+          <a class="btn-lacquer" href={staysHref}>
+            Search stays
+          </a>
+        </p>
+      )
+    }
+  </article>
+</Base>

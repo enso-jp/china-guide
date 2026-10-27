@@ -1,0 +1,117 @@
+---
+import { loadNav } from '../lib/nav';
+
+const models = await loadNav();
+const path = Astro.url.pathname.replace(/\/$/, '') || '/';
+
+function isCurrent(href: string) {
+  if (href === '/') return path === '/';
+  return path === href || path.startsWith(`${href}/`);
+}
+
+const phoneLinks = [
+  { href: '/', label: 'Home' },
+  { href: '/destinations', label: 'Destinations' },
+  { href: '/interests', label: 'Interests' },
+  { href: '/itineraries', label: 'Itineraries' },
+  { href: '/plan', label: 'Plan a trip' },
+];
+---
+
+<a class="skip" href="#content">Skip to content</a>
+<header class="topbar">
+  <div class="wrap bar">
+    <span class="bar-spacer" aria-hidden="true"></span>
+    <a class="wordmark" href="/" aria-label="China Guide home">China Guide</a>
+    <nav class="desk-nav" aria-label="Sections">
+      {
+        models.map((model) => (
+          <div class="nav-slot">
+            <a href={model.href} aria-current={isCurrent(model.href) ? 'page' : undefined}>
+              {model.label}
+            </a>
+            <div class="nav-panel" data-panel={model.id} aria-label={model.label}>
+              <div class="nav-panel-inner">
+                <div class="nav-panel-body">
+                  <div class="nav-panel-head">
+                    <a class="nav-see" href={model.href}>
+                      {model.see}
+                    </a>
+                  </div>
+                  {
+                    model.cards.length > 0 && (
+                      <div class="nav-cards">
+                        {model.cards.map((card) => (
+                          <a class="nav-card" href={card.href}>
+                            <img
+                              src={`/photos/${card.photo}.jpg`}
+                              alt=""
+                              width="960"
+                              height="640"
+                              loading="lazy"
+                              decoding="async"
+                            />
+                            <span>{card.label}</span>
+                          </a>
+                        ))}
+                      </div>
+                    )
+                  }
+                  {
+                    model.columns.length > 0 && (
+                      <div class="nav-cols">
+                        {model.columns.map((column) => (
+                          <div>
+                            <p class="nav-col-title">
+                              {column.href ? <a href={column.href}>{column.title}</a> : column.title}
+                            </p>
+                            <ul>
+                              {column.links.map((link) => (
+                                <li>
+                                  <a href={link.href}>{link.label}</a>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        ))}
+                      </div>
+                    )
+                  }
+                </div>
+              </div>
+            </div>
+          </div>
+        ))
+      }
+    </nav>
+    <button
+      class="menu-toggle"
+      type="button"
+      data-menu
+      aria-expanded="false"
+      aria-controls="site-menu"
+      aria-label="Open menu"
+    >
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M4 12h16M4 17h16"></path></svg>
+    </button>
+  </div>
+  <button class="phone-backdrop" type="button" data-menu hidden aria-label="Close menu"></button>
+  <div id="site-menu" class="phone-menu" hidden>
+    <div class="phone-menu-home">
+      <a href="/" aria-current={path === '/' ? 'page' : undefined}>Home</a>
+      <button type="button" data-menu aria-label="Close menu">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"></path></svg>
+      </button>
+    </div>
+    <nav aria-label="Menu">
+      {
+        phoneLinks.slice(1).map((link) => (
+          <a href={link.href} aria-current={isCurrent(link.href) ? 'page' : undefined}>
+            {link.label}
+            <span aria-hidden="true">›</span>
+          </a>
+        ))
+      }
+    </nav>
+  </div>
+</header>

@@ -1,0 +1,17 @@
+{
+  "name": "china-guide",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "npm run check:content && astro build && npm run check:size",
+    "preview": "astro preview",
+    "check:content": "node --experimental-strip-types scripts/check-content.ts",
+    "check:size": "node scripts/check-size.mjs"
+  },
+  "dependencies": {
+    "@fontsource/source-sans-3": "^5.3.1",
+    "astro": "^7.4.2",
+    "typescript": "^5.9.3"
+  }
+}
